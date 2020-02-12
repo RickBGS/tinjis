@@ -1,0 +1,7 @@
+version: '3'
+
+services:
+  payments:
+    volumes:
+    - ./payments:/usr/src/app
+    - /usr/src/app/tmp
