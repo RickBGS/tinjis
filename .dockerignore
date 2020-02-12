@@ -1,0 +1,14 @@
+.gradle/
+.idea/
+target/
+out/
+build/
+*.iml
+.DS_Store
+.envrc
+
+kubernetes/
+payments/
+Dockerfile
+docker-compose*
+README.md
