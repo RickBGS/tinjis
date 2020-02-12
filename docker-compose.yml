@@ -3,4 +3,11 @@ services:
   pleo-antaeus:
     build: .
     ports:
-     - "8000:8000"
+    - "8000:8000"
+
+  payments:
+    build:
+      context: ./payments
+    image: payments
+    ports:
+    - 127.0.0.1:3000:3000
