@@ -13,6 +13,10 @@ RSpec.shared_examples 'invalid parameters' do
 end
 
 RSpec.describe 'Payments API', type: :request do
+  before do
+    allow(SecureRandom).to receive(:random_number).with(2).and_return(1)
+  end
+
   describe 'POST /payments' do
   	let(:currency) { Faker::Currency.code }
   	let(:value) { Faker::Number.decimal(l_digits: 2) }
@@ -64,6 +68,20 @@ RSpec.describe 'Payments API', type: :request do
       before { post '/payments', params: attributes }
 
       include_examples 'invalid parameters'
+    end
+
+    context 'when the payment fails' do
+      before do
+        allow(SecureRandom).to receive(:random_number).with(2).and_return(0)
+      end
+      
+      before { post '/payments', params: valid_attributes }
+
+      it { expect(response).to have_http_status(:unprocessable_entity) }
+
+      it 'returns result false' do
+        expect(json['result']).to be_falsey
+      end
     end
   end
 end
