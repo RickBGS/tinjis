@@ -5,3 +5,14 @@ services:
     volumes:
     - ./payments:/usr/src/app
     - /usr/src/app/tmp
+
+  guard:
+    command: guard
+    depends_on:
+    - payments
+    environment:
+      RAILS_ENV: test
+    image: payments
+    tty: true
+    volumes:
+    - ./payments:/usr/src/app
