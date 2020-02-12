@@ -1,5 +1,17 @@
 require 'rails_helper'
 
+RSpec.shared_examples 'invalid parameters' do
+  it { expect(response).to have_http_status(:bad_request) }
+
+  it 'does not create a payment' do
+    expect(json['id']).to be_nil
+  end
+
+  it 'returns result false' do
+    expect(json['result']).to be_falsey
+  end
+end
+
 RSpec.describe 'Payments API', type: :request do
   describe 'POST /payments' do
   	let(:currency) { Faker::Currency.code }
@@ -27,15 +39,7 @@ RSpec.describe 'Payments API', type: :request do
 
       before { post '/payments', params: attributes }
 
-      it { expect(response).to have_http_status(:bad_request) }
-
-      it 'does not create a payment' do
-        expect(json['id']).to be_nil
-      end
-
-      it 'returns result false' do
-        expect(json['result']).to be_falsey
-      end
+      include_examples 'invalid parameters'
     end
 
     context 'when the request is missing the value' do
@@ -43,15 +47,7 @@ RSpec.describe 'Payments API', type: :request do
 
       before { post '/payments', params: attributes }
 
-      it { expect(response).to have_http_status(:bad_request) }
-
-      it 'does not create a payment' do
-        expect(json['id']).to be_nil
-      end
-
-      it 'returns result false' do
-        expect(json['result']).to be_falsey
-      end
+      include_examples 'invalid parameters'
     end
 
     context 'when the request is missing the customer_id' do
@@ -59,15 +55,7 @@ RSpec.describe 'Payments API', type: :request do
 
       before { post '/payments', params: attributes }
 
-      it { expect(response).to have_http_status(:bad_request) }
-
-      it 'does not create a payment' do
-        expect(json['id']).to be_nil
-      end
-
-      it 'returns result false' do
-        expect(json['result']).to be_falsey
-      end
+      include_examples 'invalid parameters'
     end
 
     context 'when the request has negative value' do
@@ -75,15 +63,7 @@ RSpec.describe 'Payments API', type: :request do
 
       before { post '/payments', params: attributes }
 
-      it { expect(response).to have_http_status(:bad_request) }
-
-      it 'does not create a payment' do
-        expect(json['id']).to be_nil
-      end
-
-      it 'returns result false' do
-        expect(json['result']).to be_falsey
-      end
+      include_examples 'invalid parameters'
     end
   end
 end
