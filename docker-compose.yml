@@ -2,12 +2,17 @@ version: '3'
 services:
   pleo-antaeus:
     build: .
+    environment:
+      PAYMENT_PROVIDER_ENDPOINT: http://payments:3000/payments
+    image: antaeus
     ports:
     - "8000:8000"
 
   payments:
     build:
       context: ./payments
+    environment:
+      RAILS_MASTER_KEY: 6ce3e113e76b22d90c9e73980f89165f
     image: payments
     ports:
     - 127.0.0.1:3000:3000
