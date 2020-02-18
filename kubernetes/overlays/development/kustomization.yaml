@@ -1,0 +1,115 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+commonAnnotations:
+  note: Built with Kustomize.
+
+commonLabels:
+  app.kubernetes.io/instance: development
+
+
+# 1) It's not guaranteed that the development nodes contain the right labels,
+# so we replace required with preferred.
+#
+# 2) It's not guaranteed that the development nodes contain the right labels.
+# so we remove all affinities as an alternative to replace.
+#
+# 3) It's not guaranteed that the development nodes are tainted,
+# so we tolerate anything.
+#
+# 4) As the development environment is not as rebust as the other ones,
+# we limit the resources available to low values.
+#
+# 5) The Ingress is provided for demonstration purposes and it's not required.
+# You can add test.development.com to /etc/hosts to test it.
+patches:
+- patch: |-
+    - op: replace
+      path: /spec/template/spec/affinity/nodeAffinity
+      value:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 1
+          preference:
+            matchExpressions:
+            - key: node.kubernetes.io/name
+              operator: In
+              values:
+              - Antaeus
+  target:
+    kind: Deployment
+    name: antaeus.*
+- patch: |-
+    - op: remove
+      path: /spec/template/spec/affinity
+  target:
+    kind: Deployment
+    name: payments.*
+- path: ./patches/tolerations-all.yaml
+  target:
+    kind: Deployment
+- path: ./patches/antaeus-resources.yaml
+  target:
+    kind: Deployment
+    name: payments.*
+- path: ./patches/payments-resources.yaml
+  target:
+    kind: Deployment
+    name: payments.*
+- patch: |-
+    - op: replace
+      path: /spec/rules/0/host
+      value: test.development.com
+    - op: replace
+      path: /spec/tls/0/hosts/0
+      value: test.development.com
+    - op: replace
+      path: /spec/tls/0/secretName
+      value: test-development-com
+  target:
+    kind: Ingress
+    name: antaeus-api
+
+images:
+- name: antaeus
+  newName: rickbgs/tinjis-antaeus
+  newTag: demo
+- name: payments
+  newName: rickbgs/tinjis-payments
+  newTag: demo
+
+nameSuffix: -dev
+
+replicas:
+- count: 1
+  name: antaeus-api
+- count: 1
+  name: payments-api
+
+generatorOptions:
+  disableNameSuffixHash: true
+  labels:
+    app.kubernetes.io/component: configuration
+
+# openssl req -new \
+#   -newkey rsa:4096 \
+#   -days 3969 \
+#   -nodes -x509 \
+#   -subj "/C=DK/L=Copenhagen/O=SRE/CN=test.development.com" \
+#   -keyout ./kubernetes/overlays/development/secrets/tls.key \
+#   -out ./kubernetes/overlays/development/secrets/tls.crt
+# TLS files commited to the repo for demo purposes.
+secretGenerator:
+- behavior: replace
+  envs:
+  - ./secrets/rails.properties
+  name: rails
+  namespace: payments
+- files:
+  - ./secrets/tls.crt
+  - ./secrets/tls.key
+  name: test-development-com
+  namespace: antaeus
+  type: kubernetes.io/tls
+
+resources:
+- ../../base

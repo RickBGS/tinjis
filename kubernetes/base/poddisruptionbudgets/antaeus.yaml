@@ -1,0 +1,13 @@
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: api
+  namespace: antaeus
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: api
+      app.kubernetes.io/instance: demo
+      app.kubernetes.io/name: Antaeus
+      app.kubernetes.io/part-of: tinjis

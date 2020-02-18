@@ -1,0 +1,76 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+
+commonAnnotations:
+  build: two
+  builder: john-doe
+
+commonLabels:
+  app.kubernetes.io/managed-by: Pleo
+  app.kubernetes.io/part-of: tinjis
+
+commonAnnotations:
+
+generatorOptions:
+  annotations:
+  disableNameSuffixHash: true
+  labels:
+    app.kubernetes.io/component: configuration
+
+configMapGenerator:
+- name: payments
+  namespace: antaeus
+  literals:
+  - JVM_OPTIONS="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1 -Xms2048M"
+
+namePrefix: tinjis-
+
+patches:
+- path: ./patches/deployments-defaults.yaml
+  target:
+    kind: Deployment
+- path: ./patches/antaeus-node-affinity.yaml
+  target:
+    kind: Deployment
+    name: antaeus.*
+- path: ./patches/payments-node-affinity.yaml
+  target:
+    kind: Deployment
+    name: payments.*
+- path: ./patches/tolerations-sre-team.yaml
+  target:
+    kind: Deployment
+    annotationSelector: "toleration=sre-team"
+
+resources:
+- ./deployments/antaeus.yaml
+- ./deployments/payments.yaml
+- ./ingresses/antaeus.yaml
+- ./networkpolicies/security.yaml
+- ./poddisruptionbudgets/antaeus.yaml
+- ./services/antaeus.yaml
+- ./services/payments.yaml
+
+# Secrets with placeholders will be replaced in the overlay.
+# They are listed here for documentation purposes/overview of dependencies.
+secretGenerator:
+- name: rails
+  namespace: payments
+  literals:
+  - MASTER_KEY=PLACEHOLDER
+
+# The service name will be calculated during the build (suffixes and prefixes can modify the service name).
+# The real value is stored in the variable PAYMENTS_API_SERVICE that can be references in the deployment:
+# env:
+# - name: PAYMENT_PROVIDER_ENDPOINT
+#   value: http://$(PAYMENTS_API_SERVICE).payments.svc.cluster.local:8080/payments
+vars:
+- name: PAYMENTS_API_SERVICE
+  objref:
+    kind: Service
+    name: api
+    namespace: payments
+    apiVersion: v1

@@ -3,8 +3,7 @@ FROM ruby:2.7.0-slim AS pre-builder
 RUN /usr/bin/apt-get update \
     && /usr/bin/apt-get -y install build-essential
 
-COPY Gemfile .
-RUN bundle lock --add-platform x86-mingw32 x86-mswin32 x64-mingw32 java
+COPY Gemfile* ./
 RUN bundle install
 
 RUN rm -rf ${GEM_HOME}/cache/*.gem \

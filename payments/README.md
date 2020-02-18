@@ -17,6 +17,12 @@ Things you may want to cover:
 
 * How to run the test suite
 
+Tests for the Payments Service app can be run with the following command:
+
+```
+docker-compose run --rm -e RAILS_ENV=test payments rspec
+```
+
 * Services (job queues, cache servers, search engines, etc.)
 
 * Deployment instructions
